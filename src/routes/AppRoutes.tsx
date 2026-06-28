@@ -43,17 +43,16 @@ const AppRoutes = () => {
       <Route path={ROUTES.REGISTER} element={<Register />} />
       <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
 
-      <Route path={ROUTES.ADMIN} element={<AdminLayout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="categories" element={<Categories />} />
-        <Route path="products" element={<AdminProducts />} />
-        <Route path="orders" element={<Orders />} />
-        <Route path="customers" element={<Customers />} />
-        <Route path="inventory" element={<Inventory />} />
-        <Route path="settings" element={<Settings />} />
-        <Route
-  element={<ProtectedRoute allowedRoles={["SUPER_ADMIN", "ADMIN", "MANAGER"]} />}
-/>
+      <Route element={<ProtectedRoute allowedRoles={["SUPER_ADMIN", "ADMIN", "MANAGER"]} />}>
+        <Route path={ROUTES.ADMIN} element={<AdminLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="orders" element={<Orders />} />
+          <Route path="customers" element={<Customers />} />
+          <Route path="inventory" element={<Inventory />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<NotFound />} />
