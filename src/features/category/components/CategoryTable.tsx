@@ -11,13 +11,16 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import type { Category } from "../../../types/category";
+
+import type { Category } from "../types/category";
 
 interface CategoryTableProps {
   categories: Category[];
+  onEdit: (category: Category) => void;
+  onDelete: (categoryId: number) => void;
 }
 
-const CategoryTable = ({ categories }: CategoryTableProps) => {
+const CategoryTable = ({ categories, onEdit, onDelete }: CategoryTableProps) => {
   return (
     <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
       <Table>
@@ -47,13 +50,20 @@ const CategoryTable = ({ categories }: CategoryTableProps) => {
               </TableCell>
               <TableCell>{category.displayOrder}</TableCell>
               <TableCell align="right">
-                <IconButton color="primary">
-                  <EditIcon />
-                </IconButton>
-                <IconButton color="error">
-                  <DeleteIcon />
-                </IconButton>
-              </TableCell>
+  <IconButton
+    color="primary"
+    onClick={() => onEdit(category)}
+  >
+    <EditIcon />
+  </IconButton>
+
+  <IconButton
+    color="error"
+    onClick={() => onDelete(category.id)}
+  >
+    <DeleteIcon />
+  </IconButton>
+</TableCell>
             </TableRow>
           ))}
         </TableBody>
