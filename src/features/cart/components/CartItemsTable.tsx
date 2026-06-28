@@ -1,8 +1,9 @@
-import { Box, IconButton, Stack, TableCell, TableRow, Typography } from "@mui/material";
+import { Avatar, Box, IconButton, Stack, TableCell, TableRow, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DataTable from "../../../components/common/tables/DataTable";
+import { getProductImageUrl } from "../../../utils/image";
 import type { CartItem } from "../types/cart";
 
 interface CartItemsTableProps {
@@ -31,7 +32,17 @@ const CartItemsTable = ({ items, onIncrease, onDecrease, onRemove }: CartItemsTa
     >
       {items.map((item) => (
         <TableRow key={item.productId} hover>
-          <TableCell>{item.name}</TableCell>
+          <TableCell>
+            <Box sx={{ alignItems: "center", display: "flex", gap: 1.5 }}>
+              <Avatar
+                src={getProductImageUrl(item.imageUrl)}
+                alt={item.name}
+                variant="rounded"
+                sx={{ height: 44, width: 44 }}
+              />
+              <Typography sx={{ fontWeight: 700 }}>{item.name}</Typography>
+            </Box>
+          </TableCell>
           <TableCell>${item.price.toFixed(2)}</TableCell>
           <TableCell>
             <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>

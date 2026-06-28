@@ -6,10 +6,12 @@ import PrimaryButton from "../../../components/common/buttons/PrimaryButton";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import ProductDialog from "../components/ProductDialog";
 import ProductTable from "../components/ProductTable";
+import { ProductService } from "../../../services/ProductService";
 import { addProduct, deleteProduct, updateProduct } from "../store/productSlice";
 import type { Product } from "../types/product";
 import type { ProductFormErrors, ProductFormValues } from "../components/ProductForm";
 
+// Blank form state used whenever "Add Product" is opened.
 const initialProductForm: ProductFormValues = {
   name: "",
   slug: "",
@@ -39,6 +41,7 @@ const ProductsPage = () => {
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [formValues, setFormValues] = useState<ProductFormValues>(initialProductForm);
   const [formErrors, setFormErrors] = useState<ProductFormErrors>({});
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const validateForm = () => {
     const nextErrors: ProductFormErrors = {};
@@ -61,6 +64,7 @@ const ProductsPage = () => {
     setEditingProduct(null);
     setFormValues({ ...initialProductForm, brandId: brands[0]?.id ?? 1, categoryId: categories[0]?.id ?? 1 });
     setFormErrors({});
+    setIsUploadingImage(false);
   };
 
   const toProductPayload = (id: number): Product => ({
@@ -101,6 +105,43 @@ const ProductsPage = () => {
     setDeletingProduct(null);
   };
 
+  // handleImageUpload sends the chosen file to the backend, then syncs the returned
+  // product (with the new imageUrl) into Redux and local dialog form state so the
+  // preview in ProductDialog updates immediately without a page refresh.
+  const handleImageUpload = async (file: File) => {
+    if (!editingProduct) {
+      toast.error("Save the product before uploading an image.");
+      return;
+    }
+
+    setIsUploadingImage(true);
+
+    try {
+      // Backend returns the full product with the updated imageUrl path.
+      const updatedProduct = await ProductService.uploadProductImage(editingProduct.id, file);
+
+      // Merge the returned product over the current editing snapshot.
+      const nextProduct = { ...editingProduct, ...updatedProduct };
+
+      // Sync into Redux store so the products table thumbnail also updates.
+      dispatch(updateProduct(nextProduct));
+
+      // Keep the dialog's local state in sync so the image preview refreshes.
+      setEditingProduct(nextProduct);
+      setFormValues({
+        ...nextProduct,
+        salePrice: nextProduct.salePrice ?? "",
+        imageUrl: nextProduct.imageUrl || "",
+      });
+
+      toast.success("Product image uploaded.");
+    } catch {
+      toast.error("Unable to upload image. Confirm this product exists in the backend.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   const handleAdd = () => {
     setFormValues({ ...initialProductForm, brandId: brands[0]?.id ?? 1, categoryId: categories[0]?.id ?? 1 });
     setFormErrors({});
@@ -127,6 +168,9 @@ const ProductsPage = () => {
         onChange={setFormValues}
         onClose={closeDialog}
         onSave={handleSave}
+        canUploadImage={Boolean(editingProduct)}
+        isUploadingImage={isUploadingImage}
+        onImageUpload={(file) => void handleImageUpload(file)}
       />
       <ConfirmDialog
         open={Boolean(deletingProduct)}

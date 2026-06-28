@@ -1,10 +1,15 @@
 import { createContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import type { AuthUser } from "../types/user";
+import { authStorage } from "../utils/authStorage";
 
 interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
+  // True while the initial localStorage restore is in-flight.
+  // ProtectedRoute must wait for isLoading=false before checking isAuthenticated,
+  // otherwise the protected page redirects to /login on every browser refresh.
+  isLoading: boolean;
   isAuthenticated: boolean;
   login: (token: string, user: AuthUser) => void;
   logout: () => void;
@@ -16,35 +21,43 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-const USER_STORAGE_KEY = "authUser";
-const TOKEN_STORAGE_KEY = "accessToken";
-
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  // isLoading starts true and becomes false once localStorage has been read.
+  // Components that gate on isAuthenticated must suspend rendering until then.
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Restore auth state from localStorage on first mount.
+  // This runs after the first render, which is why ProtectedRoute must not
+  // act on isAuthenticated until isLoading is false.
   useEffect(() => {
-    const storedUser = localStorage.getItem(USER_STORAGE_KEY);
-    const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
+    const storedToken = authStorage.getToken();
+    const storedUser = authStorage.getUser();
 
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
+    if (storedToken && storedUser) {
+      // Both values present — restore the session.
       setToken(storedToken);
+      setUser(storedUser);
+    } else if (storedToken || storedUser) {
+      // Partial data — inconsistent state, clear it to force re-login.
+      authStorage.clear();
     }
+
+    setIsLoading(false);
   }, []);
 
+  // Persists the session after a successful API login response.
   const login = (newToken: string, newUser: AuthUser) => {
-    localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser));
-
+    authStorage.save(newToken, newUser);
     setToken(newToken);
     setUser(newUser);
   };
 
+  // Wipes the session on explicit logout.
+  // axiosClient also calls authStorage.clear() on 401 responses.
   const logout = () => {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-    localStorage.removeItem(USER_STORAGE_KEY);
-
+    authStorage.clear();
     setToken(null);
     setUser(null);
   };
@@ -53,11 +66,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     () => ({
       user,
       token,
+      isLoading,
       isAuthenticated: Boolean(user && token),
       login,
       logout,
     }),
-    [user, token]
+    [user, token, isLoading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

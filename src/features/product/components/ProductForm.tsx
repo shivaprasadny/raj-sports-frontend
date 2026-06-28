@@ -103,11 +103,7 @@ const ProductForm = ({ values, errors = {}, brands, categories, onChange }: Prod
         helperText={errors.stockQuantity}
         onChange={(event) => onChange({ ...values, stockQuantity: Number(event.target.value) })}
       />
-      <AppTextField
-        label="Image URL"
-        value={values.imageUrl}
-        onChange={(event) => onChange({ ...values, imageUrl: event.target.value })}
-      />
+      {/* imageUrl is managed via the image upload section in ProductDialog, not entered manually */}
       <AppTextField
         label="Short Description"
         value={values.shortDescription}

@@ -1,4 +1,5 @@
 import { AppBar, Box, Button, Toolbar, Typography } from "@mui/material";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constants/routes";
 import { useAuth } from "../../hooks/useAuth";
@@ -25,6 +26,15 @@ const Header = () => {
             </Typography>
           )}
         </Box>
+
+        <Button
+          variant="outlined"
+          startIcon={<StorefrontIcon />}
+          onClick={() => navigate(ROUTES.HOME)}
+          sx={{ mr: 1 }}
+        >
+          View Store
+        </Button>
 
         <Button variant="outlined" color="error" onClick={handleLogout}>
           Logout

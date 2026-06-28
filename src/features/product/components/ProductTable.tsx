@@ -1,8 +1,9 @@
-import { IconButton, TableCell, TableRow } from "@mui/material";
+import { Avatar, Box, IconButton, TableCell, TableRow, Typography } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import DataTable from "../../../components/common/tables/DataTable";
 import StatusChip from "../../../components/common/chips/StatusChip";
+import { getProductImageUrl } from "../../../utils/image";
 import { StockStatusChip } from "./ProductStatus";
 import type { Brand } from "../../brand";
 import type { Category } from "../../category/types/category";
@@ -17,7 +18,7 @@ interface ProductTableProps {
 }
 
 const columns = [
-  { id: "name", label: "Name" },
+  { id: "product", label: "Product" },
   { id: "sku", label: "SKU" },
   { id: "brand", label: "Brand" },
   { id: "category", label: "Category" },
@@ -41,7 +42,17 @@ const ProductTable = ({ products, brands, categories, onEdit, onDelete }: Produc
     >
       {products.map((product) => (
         <TableRow key={product.id} hover>
-          <TableCell>{product.name}</TableCell>
+          <TableCell>
+            <Box sx={{ alignItems: "center", display: "flex", gap: 1.5 }}>
+              <Avatar
+                src={getProductImageUrl(product.imageUrl)}
+                alt={product.name}
+                variant="rounded"
+                sx={{ height: 44, width: 44 }}
+              />
+              <Typography sx={{ fontWeight: 700 }}>{product.name}</Typography>
+            </Box>
+          </TableCell>
           <TableCell>{product.sku}</TableCell>
           <TableCell>{brandName(product.brandId)}</TableCell>
           <TableCell>{categoryName(product.categoryId)}</TableCell>
