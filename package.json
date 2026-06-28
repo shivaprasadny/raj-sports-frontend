@@ -14,11 +14,13 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^9.1.1",
     "@mui/material": "^9.1.2",
+    "@reduxjs/toolkit": "^2.12.0",
     "axios": "^1.18.1",
     "dotenv": "^17.4.2",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-hot-toast": "^2.6.0",
+    "react-redux": "^9.3.0",
     "react-router-dom": "^7.18.0"
   },
   "devDependencies": {
