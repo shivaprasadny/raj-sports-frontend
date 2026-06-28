@@ -5,6 +5,7 @@ import { CssBaseline, ThemeProvider } from "@mui/material";
 import { Toaster } from "react-hot-toast";
 import App from "./App";
 import { theme } from "./styles/theme";
+import { AuthProvider } from "./context/AuthContext";
 import "./index.css";
 
 createRoot(document.getElementById("root")!).render(
@@ -12,7 +13,9 @@ createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
         <Toaster position="top-right" />
       </ThemeProvider>
     </BrowserRouter>

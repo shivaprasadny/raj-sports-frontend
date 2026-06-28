@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router-dom";
+import { ROUTES } from "../constants/routes";
 import MainLayout from "../layouts/MainLayout";
 import AdminLayout from "../layouts/AdminLayout";
 
@@ -21,6 +22,7 @@ import Orders from "../pages/admin/Orders";
 import Customers from "../pages/admin/Customers";
 import Inventory from "../pages/admin/Inventory";
 import Settings from "../pages/admin/Settings";
+import ProtectedRoute from "./ProtectedRoute";
 
 import NotFound from "../pages/error/NotFound";
 
@@ -28,20 +30,20 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route element={<MainLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/products" element={<Products />} />
+        <Route path={ROUTES.HOME} element={<Home />} />
+        <Route path={ROUTES.PRODUCTS} element={<Products />} />
         <Route path="/products/:id" element={<ProductDetails />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/about" element={<About />} />
+        <Route path={ROUTES.CART} element={<Cart />} />
+        <Route path={ROUTES.CHECKOUT} element={<Checkout />} />
+        <Route path={ROUTES.CONTACT} element={<Contact />} />
+        <Route path={ROUTES.ABOUT} element={<About />} />
       </Route>
 
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path={ROUTES.LOGIN} element={<Login />} />
+      <Route path={ROUTES.REGISTER} element={<Register />} />
+      <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
 
-      <Route path="/admin" element={<AdminLayout />}>
+      <Route path={ROUTES.ADMIN} element={<AdminLayout />}>
         <Route index element={<Dashboard />} />
         <Route path="categories" element={<Categories />} />
         <Route path="products" element={<AdminProducts />} />
@@ -49,6 +51,9 @@ const AppRoutes = () => {
         <Route path="customers" element={<Customers />} />
         <Route path="inventory" element={<Inventory />} />
         <Route path="settings" element={<Settings />} />
+        <Route
+  element={<ProtectedRoute allowedRoles={["SUPER_ADMIN", "ADMIN", "MANAGER"]} />}
+/>
       </Route>
 
       <Route path="*" element={<NotFound />} />
