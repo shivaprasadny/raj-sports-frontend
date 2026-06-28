@@ -17,6 +17,7 @@ import ForgotPassword from "../pages/auth/ForgotPassword";
 
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
+import { BrandsPage } from "../features/brand";
 import AdminProducts from "../pages/admin/Products";
 import Orders from "../pages/admin/Orders";
 import Customers from "../pages/admin/Customers";
@@ -46,6 +47,7 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute allowedRoles={["SUPER_ADMIN", "ADMIN", "MANAGER"]} />}>
         <Route path={ROUTES.ADMIN} element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
+          <Route path="brands" element={<BrandsPage />} />
           <Route path="categories" element={<Categories />} />
           <Route path="products" element={<AdminProducts />} />
           <Route path="orders" element={<Orders />} />

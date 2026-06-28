@@ -1,4 +1,5 @@
-import { Box, FormControlLabel, Switch, TextField } from "@mui/material";
+import { Box, FormControlLabel, Switch } from "@mui/material";
+import AppTextField from "../../../components/common/inputs/AppTextField";
 
 export interface CategoryFormValues {
   name: string;
@@ -8,18 +9,23 @@ export interface CategoryFormValues {
   isActive: boolean;
 }
 
+export type CategoryFormErrors = Partial<Record<keyof CategoryFormValues, string>>;
+
 interface CategoryFormProps {
   values: CategoryFormValues;
+  errors?: CategoryFormErrors;
   onChange: (values: CategoryFormValues) => void;
 }
 
-const CategoryForm = ({ values, onChange }: CategoryFormProps) => {
+// CategoryForm owns only category fields; the page decides create vs update.
+const CategoryForm = ({ values, errors = {}, onChange }: CategoryFormProps) => {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-      <TextField
+      <AppTextField
         label="Category Name"
-        fullWidth
         value={values.name}
+        error={Boolean(errors.name)}
+        helperText={errors.name}
         onChange={(e) =>
           onChange({
             ...values,
@@ -29,27 +35,28 @@ const CategoryForm = ({ values, onChange }: CategoryFormProps) => {
         }
       />
 
-      <TextField
+      <AppTextField
         label="Slug"
-        fullWidth
         value={values.slug}
+        error={Boolean(errors.slug)}
+        helperText={errors.slug}
         onChange={(e) => onChange({ ...values, slug: e.target.value })}
       />
 
-      <TextField
+      <AppTextField
         label="Description"
         multiline
         rows={3}
-        fullWidth
         value={values.description}
         onChange={(e) => onChange({ ...values, description: e.target.value })}
       />
 
-      <TextField
+      <AppTextField
         label="Display Order"
         type="number"
-        fullWidth
         value={values.displayOrder}
+        error={Boolean(errors.displayOrder)}
+        helperText={errors.displayOrder}
         onChange={(e) => onChange({ ...values, displayOrder: Number(e.target.value) })}
       />
 

@@ -1,5 +1,3 @@
-const Home = () => {
-  return <div>Home Page</div>;
-};
+import { CartPage } from "../../features/cart";
 
-export default Home;
+export default CartPage;

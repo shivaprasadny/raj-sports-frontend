@@ -14,27 +14,22 @@ const categorySlice = createSlice({
   name: "category",
   initialState,
   reducers: {
+    // Mock CRUD reducers keep category management frontend-only for now.
     addCategory: (state, action: PayloadAction<Category>) => {
       state.categories.push(action.payload);
     },
     updateCategory: (state, action: PayloadAction<Category>) => {
-  const index = state.categories.findIndex(
-    (category) => category.id === action.payload.id
-  );
+      const index = state.categories.findIndex((category) => category.id === action.payload.id);
 
-  if (index !== -1) {
-    state.categories[index] = action.payload;
-  }
-},
-
-deleteCategory: (state, action: PayloadAction<number>) => {
-  state.categories = state.categories.filter(
-    (category) => category.id !== action.payload
-  );
-},
+      if (index !== -1) {
+        state.categories[index] = action.payload;
+      }
+    },
+    deleteCategory: (state, action: PayloadAction<number>) => {
+      state.categories = state.categories.filter((category) => category.id !== action.payload);
+    },
   },
 });
-
 
 export const { addCategory, updateCategory, deleteCategory } = categorySlice.actions;
 export default categorySlice.reducer;

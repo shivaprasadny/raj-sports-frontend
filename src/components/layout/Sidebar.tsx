@@ -4,6 +4,7 @@ import { ROUTES } from "../../constants/routes";
 
 const links = [
   { label: "Dashboard", path: ROUTES.ADMIN },
+  { label: "Brands", path: ROUTES.ADMIN_BRANDS },
   { label: "Categories", path: ROUTES.ADMIN_CATEGORIES },
   { label: "Products", path: ROUTES.ADMIN_PRODUCTS },
   { label: "Orders", path: ROUTES.ADMIN_ORDERS },

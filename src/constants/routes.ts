@@ -11,6 +11,7 @@ export const ROUTES = {
   FORGOT_PASSWORD: "/forgot-password",
 
   ADMIN: "/admin",
+  ADMIN_BRANDS: "/admin/brands",
   ADMIN_CATEGORIES: "/admin/categories",
   ADMIN_PRODUCTS: "/admin/products",
   ADMIN_ORDERS: "/admin/orders",
