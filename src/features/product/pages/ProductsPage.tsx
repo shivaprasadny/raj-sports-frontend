@@ -85,13 +85,27 @@ const ProductsPage = () => {
     try {
       if (editingProduct) {
         await ProductService.update(editingProduct.id, toPayload());
+        await dispatch(fetchProducts());
         toast.success("Product updated.");
+        closeDialog();
       } else {
-        await ProductService.create(toPayload());
-        toast.success("Product added.");
+        // After create: stay open in edit mode so the image upload section appears immediately.
+        const created = await ProductService.create(toPayload());
+        await dispatch(fetchProducts());
+        toast.success("Product saved — you can now upload an image.");
+        setEditingProduct(created);
+        setFormValues({
+          ...initialProductForm,
+          ...created,
+          detailedDescription: created.detailedDescription ?? "",
+          specifications: created.specifications ?? "",
+          careInstructions: created.careInstructions ?? "",
+          warrantyInfo: created.warrantyInfo ?? "",
+          salePrice: created.salePrice ?? "",
+          imageUrl: created.imageUrl || "",
+        });
+        setFormErrors({});
       }
-      await dispatch(fetchProducts());
-      closeDialog();
     } catch {
       toast.error("Failed to save product. Please try again.");
     }
@@ -170,7 +184,7 @@ const ProductsPage = () => {
       <ProductTable products={products} brands={brands} categories={categories} onEdit={handleEdit} onDelete={setDeletingProduct} />
       <ProductDialog
         open={isDialogOpen}
-        title={editingProduct ? "Edit Product" : "Add Product"}
+        title={editingProduct ? `Edit Product — ${editingProduct.name}` : "Add Product"}
         values={formValues}
         errors={formErrors}
         brands={brands}

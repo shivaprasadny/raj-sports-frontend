@@ -203,9 +203,9 @@ const ProductDialog = ({
               </Button>
             </>
           ) : (
-            // Add-product mode: the backend product id does not exist yet, so upload is blocked.
+            // Add-product mode: product has no backend id yet, so upload requires saving first.
             <Alert severity="info">
-              Save the product first, then open Edit to upload an image.
+              Click <strong>Save Product</strong> — the image upload section will appear automatically so you can add an image right away.
             </Alert>
           )}
         </Box>

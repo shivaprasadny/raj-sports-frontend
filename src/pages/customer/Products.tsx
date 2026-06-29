@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -51,6 +51,17 @@ const Products = () => {
     [products]
   );
   const [priceRange, setPriceRange] = useState<[number, number]>([0, maxPrice]);
+  const prevMaxPriceRef = useRef(maxPrice);
+
+  // When products load from the backend, maxPrice jumps from its initial fallback
+  // to the real maximum. Auto-extend the upper handle to the new max only if the
+  // user hasn't already dragged it to a custom value below the previous max.
+  useEffect(() => {
+    const prevMax = prevMaxPriceRef.current;
+    prevMaxPriceRef.current = maxPrice;
+    if (maxPrice === prevMax) return;
+    setPriceRange((prev) => [prev[0], prev[1] === prevMax ? maxPrice : Math.max(prev[1], maxPrice)]);
+  }, [maxPrice]);
 
   // Quick-filter toggles (checkbox-style).
   const [activeFilters, setActiveFilters] = useState<Set<QuickFilterKey>>(new Set());
