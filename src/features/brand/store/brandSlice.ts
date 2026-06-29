@@ -1,35 +1,38 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { mockBrands } from "../mocks/brands";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { BrandService } from "../../../services/BrandService";
 import type { Brand } from "../types/brand";
 
 interface BrandState {
   brands: Brand[];
+  loading: boolean;
 }
 
 const initialState: BrandState = {
-  brands: mockBrands,
+  brands: [],
+  loading: false,
 };
+
+export const fetchBrands = createAsyncThunk("brand/fetchAll", () =>
+  BrandService.getAll()
+);
 
 const brandSlice = createSlice({
   name: "brand",
   initialState,
-  reducers: {
-    // Mock CRUD reducers let admin screens behave like real forms.
-    addBrand: (state, action: PayloadAction<Brand>) => {
-      state.brands.push(action.payload);
-    },
-    updateBrand: (state, action: PayloadAction<Brand>) => {
-      const index = state.brands.findIndex((brand) => brand.id === action.payload.id);
-
-      if (index !== -1) {
-        state.brands[index] = action.payload;
-      }
-    },
-    deleteBrand: (state, action: PayloadAction<number>) => {
-      state.brands = state.brands.filter((brand) => brand.id !== action.payload);
-    },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchBrands.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchBrands.fulfilled, (state, action) => {
+        state.loading = false;
+        state.brands = action.payload;
+      })
+      .addCase(fetchBrands.rejected, (state) => {
+        state.loading = false;
+      });
   },
 });
 
-export const { addBrand, updateBrand, deleteBrand } = brandSlice.actions;
 export default brandSlice.reducer;

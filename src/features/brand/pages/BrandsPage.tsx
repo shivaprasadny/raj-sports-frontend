@@ -6,7 +6,8 @@ import ConfirmDialog from "../../../components/common/dialogs/ConfirmDialog";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import BrandDialog from "../components/BrandDialog";
 import BrandTable from "../components/BrandTable";
-import { addBrand, deleteBrand, updateBrand } from "../store/brandSlice";
+import { fetchBrands } from "../store/brandSlice";
+import { BrandService } from "../../../services/BrandService";
 import type { Brand } from "../types/brand";
 import type { BrandFormErrors, BrandFormValues } from "../components/BrandForm";
 
@@ -19,7 +20,6 @@ const initialFormValues: BrandFormValues = {
   isActive: true,
 };
 
-// BrandsPage coordinates mock CRUD while the UI stays split into components.
 const BrandsPage = () => {
   const dispatch = useAppDispatch();
   const brands = useAppSelector((state) => state.brand.brands);
@@ -47,23 +47,27 @@ const BrandsPage = () => {
     setFormErrors({});
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) {
       toast.error("Please fix the brand form errors.");
       return;
     }
 
-    const logoUrl = formValues.logoUrl.trim() || undefined;
+    const payload = { ...formValues, logoUrl: formValues.logoUrl.trim() || undefined };
 
-    if (editingBrand) {
-      dispatch(updateBrand({ ...formValues, logoUrl, id: editingBrand.id }));
-      toast.success("Brand updated.");
-    } else {
-      dispatch(addBrand({ ...formValues, logoUrl, id: Date.now() }));
-      toast.success("Brand added.");
+    try {
+      if (editingBrand) {
+        await BrandService.update(editingBrand.id, payload);
+        toast.success("Brand updated.");
+      } else {
+        await BrandService.create(payload);
+        toast.success("Brand added.");
+      }
+      await dispatch(fetchBrands());
+      closeDialog();
+    } catch {
+      toast.error("Failed to save brand. Please try again.");
     }
-
-    closeDialog();
   };
 
   const handleEdit = (brand: Brand) => {
@@ -73,11 +77,17 @@ const BrandsPage = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deletingBrand) return;
-    dispatch(deleteBrand(deletingBrand.id));
-    toast.success("Brand deleted.");
-    setDeletingBrand(null);
+    try {
+      await BrandService.remove(deletingBrand.id);
+      toast.success("Brand deleted.");
+      await dispatch(fetchBrands());
+    } catch {
+      toast.error("Failed to delete brand.");
+    } finally {
+      setDeletingBrand(null);
+    }
   };
 
   return (
@@ -98,15 +108,15 @@ const BrandsPage = () => {
         errors={formErrors}
         onChange={setFormValues}
         onClose={closeDialog}
-        onSave={handleSave}
+        onSave={() => void handleSave()}
       />
       <ConfirmDialog
         open={Boolean(deletingBrand)}
         title="Delete brand?"
-        description={`This will remove ${deletingBrand?.name || "this brand"} from the mock admin list.`}
+        description={`This will permanently delete ${deletingBrand?.name || "this brand"}.`}
         confirmLabel="Delete"
         onCancel={() => setDeletingBrand(null)}
-        onConfirm={handleDelete}
+        onConfirm={() => void handleDelete()}
       />
     </Box>
   );

@@ -5,9 +5,10 @@ import CategoryTable from "../components/CategoryTable";
 import CategoryDialog from "../components/CategoryDialog";
 import ConfirmDialog from "../../../components/common/dialogs/ConfirmDialog";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import { fetchCategories } from "../store/categorySlice";
+import { CategoryService } from "../../../services/CategoryService";
 import type { Category } from "../types/category";
 import type { CategoryFormErrors, CategoryFormValues } from "../components/CategoryForm";
-import { addCategory, updateCategory, deleteCategory } from "../store/categorySlice";
 
 const initialFormValues: CategoryFormValues = {
   name: "",
@@ -27,21 +28,12 @@ const Categories = () => {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
 
-  // Validation stays local until a real backend contract exists.
   const validateForm = () => {
     const nextErrors: CategoryFormErrors = {};
 
-    if (!formValues.name.trim()) {
-      nextErrors.name = "Name is required";
-    }
-
-    if (!formValues.slug.trim()) {
-      nextErrors.slug = "Slug is required";
-    }
-
-    if (formValues.displayOrder <= 0) {
-      nextErrors.displayOrder = "Display order must be positive";
-    }
+    if (!formValues.name.trim()) nextErrors.name = "Name is required";
+    if (!formValues.slug.trim()) nextErrors.slug = "Slug is required";
+    if (formValues.displayOrder <= 0) nextErrors.displayOrder = "Display order must be positive";
 
     setFormErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -54,21 +46,25 @@ const Categories = () => {
     setIsDialogOpen(false);
   };
 
-  const handleSaveCategory = () => {
+  const handleSaveCategory = async () => {
     if (!validateForm()) {
       toast.error("Please fix the category form errors.");
       return;
     }
 
-    if (editingCategory) {
-      dispatch(updateCategory({ id: editingCategory.id, ...formValues }));
-      toast.success("Category updated.");
-    } else {
-      dispatch(addCategory({ id: Date.now(), ...formValues }));
-      toast.success("Category added.");
+    try {
+      if (editingCategory) {
+        await CategoryService.update(editingCategory.id, formValues);
+        toast.success("Category updated.");
+      } else {
+        await CategoryService.create(formValues);
+        toast.success("Category added.");
+      }
+      await dispatch(fetchCategories());
+      closeDialog();
+    } catch {
+      toast.error("Failed to save category. Please try again.");
     }
-
-    closeDialog();
   };
 
   const handleEditCategory = (category: Category) => {
@@ -84,14 +80,17 @@ const Categories = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDeleteCategory = () => {
-    if (!deletingCategory) {
-      return;
+  const handleDeleteCategory = async () => {
+    if (!deletingCategory) return;
+    try {
+      await CategoryService.remove(deletingCategory.id);
+      toast.success("Category deleted.");
+      await dispatch(fetchCategories());
+    } catch {
+      toast.error("Failed to delete category.");
+    } finally {
+      setDeletingCategory(null);
     }
-
-    dispatch(deleteCategory(deletingCategory.id));
-    toast.success("Category deleted.");
-    setDeletingCategory(null);
   };
 
   const handleAddCategory = () => {
@@ -103,10 +102,7 @@ const Categories = () => {
 
   const handleRequestDelete = (categoryId: number) => {
     const category = categories.find((item) => item.id === categoryId);
-
-    if (category) {
-      setDeletingCategory(category);
-    }
+    if (category) setDeletingCategory(category);
   };
 
   return (
@@ -121,16 +117,16 @@ const Categories = () => {
         errors={formErrors}
         onChange={setFormValues}
         onClose={closeDialog}
-        onSave={handleSaveCategory}
+        onSave={() => void handleSaveCategory()}
       />
 
       <ConfirmDialog
         open={Boolean(deletingCategory)}
         title="Delete category?"
-        description={`This will remove ${deletingCategory?.name || "this category"} from the mock admin list.`}
+        description={`This will permanently delete ${deletingCategory?.name || "this category"}.`}
         confirmLabel="Delete"
         onCancel={() => setDeletingCategory(null)}
-        onConfirm={handleDeleteCategory}
+        onConfirm={() => void handleDeleteCategory()}
       />
     </>
   );

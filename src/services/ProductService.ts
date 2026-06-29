@@ -1,43 +1,83 @@
 import axiosClient from "../api/axiosClient";
 import type { Product } from "../features/product";
 
-// Generic wrapper the backend wraps every response body in.
 interface ApiResponse<T> {
   success: boolean;
   message: string;
   data: T;
 }
 
+interface PageData<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+}
+
+interface ProductPayload {
+  name: string;
+  slug?: string;
+  shortDescription?: string;
+  description?: string;
+  detailedDescription?: string;
+  specifications?: string;
+  careInstructions?: string;
+  warrantyInfo?: string;
+  sku: string;
+  brandId: number;
+  categoryId: number;
+  price: number;
+  salePrice?: number | string;
+  stockQuantity: number;
+  lowStockThreshold: number;
+  imageUrl?: string;
+  isActive?: boolean;
+  isFeatured?: boolean;
+  isBestSeller?: boolean;
+  isNewArrival?: boolean;
+}
+
 export const ProductService = {
-  /**
-   * Uploads a product image to the backend.
-   *
-   * Endpoint : POST /api/images/products/{productId}/upload
-   * Auth     : JWT is attached automatically by the axiosClient request interceptor.
-   * Encoding : multipart/form-data — the field name must match the backend @RequestParam "file".
-   *
-   * The backend stores the file under /uploads/products/ and returns the full updated
-   * Product object whose imageUrl holds the relative path (e.g. /uploads/products/abc.png).
-   * Use getProductImageUrl() from utils/image to convert that path to an absolute browser URL.
-   */
+  async getAll(): Promise<Product[]> {
+    const res = await axiosClient.get<ApiResponse<PageData<Product>>>(
+      "/products?page=0&size=500"
+    );
+    return res.data.data.content;
+  },
+
+  async create(payload: Omit<ProductPayload, "lowStockThreshold"> & { lowStockThreshold?: number }): Promise<Product> {
+    const res = await axiosClient.post<ApiResponse<Product>>("/products", {
+      ...payload,
+      lowStockThreshold: payload.lowStockThreshold ?? 5,
+    });
+    return res.data.data;
+  },
+
+  async update(id: number, payload: Omit<ProductPayload, "lowStockThreshold"> & { lowStockThreshold?: number }): Promise<Product> {
+    const res = await axiosClient.put<ApiResponse<Product>>(`/products/${id}`, {
+      ...payload,
+      lowStockThreshold: payload.lowStockThreshold ?? 5,
+    });
+    return res.data.data;
+  },
+
+  async remove(id: number): Promise<void> {
+    await axiosClient.delete(`/products/${id}`);
+  },
+
   async uploadProductImage(productId: number, file: File): Promise<Product> {
-    // Build the multipart form body with the single required field.
     const formData = new FormData();
     formData.append("file", file);
 
-    // axiosClient overrides Content-Type to multipart/form-data so Axios sets the boundary.
     const response = await axiosClient.post<ApiResponse<Product>>(
       `/images/products/${productId}/upload`,
       formData,
       {
         headers: {
-          // Explicitly set so Axios generates the correct multipart boundary string.
           "Content-Type": "multipart/form-data",
         },
       }
     );
 
-    // Return only the data payload; callers don't need the wrapper envelope.
     return response.data.data;
   },
 };

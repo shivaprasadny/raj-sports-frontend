@@ -7,11 +7,10 @@ import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import ProductDialog from "../components/ProductDialog";
 import ProductTable from "../components/ProductTable";
 import { ProductService } from "../../../services/ProductService";
-import { addProduct, deleteProduct, updateProduct } from "../store/productSlice";
+import { fetchProducts } from "../store/productSlice";
 import type { Product } from "../types/product";
 import type { ProductFormErrors, ProductFormValues } from "../components/ProductForm";
 
-// Blank form state used whenever "Add Product" is opened.
 const initialProductForm: ProductFormValues = {
   name: "",
   slug: "",
@@ -34,7 +33,6 @@ const initialProductForm: ProductFormValues = {
   isNewArrival: false,
 };
 
-// ProductsPage coordinates product CRUD while form/table stay componentized.
 const ProductsPage = () => {
   const dispatch = useAppDispatch();
   const products = useAppSelector((state) => state.product.products);
@@ -71,28 +69,32 @@ const ProductsPage = () => {
     setIsUploadingImage(false);
   };
 
-  const toProductPayload = (id: number): Product => ({
+  const toPayload = () => ({
     ...formValues,
-    id,
-    salePrice: formValues.salePrice === "" ? undefined : formValues.salePrice,
+    salePrice: formValues.salePrice === "" ? undefined : Number(formValues.salePrice),
     imageUrl: formValues.imageUrl.trim() || undefined,
+    lowStockThreshold: 5,
   });
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) {
       toast.error("Please fix the product form errors.");
       return;
     }
 
-    if (editingProduct) {
-      dispatch(updateProduct(toProductPayload(editingProduct.id)));
-      toast.success("Product updated.");
-    } else {
-      dispatch(addProduct(toProductPayload(Date.now())));
-      toast.success("Product added.");
+    try {
+      if (editingProduct) {
+        await ProductService.update(editingProduct.id, toPayload());
+        toast.success("Product updated.");
+      } else {
+        await ProductService.create(toPayload());
+        toast.success("Product added.");
+      }
+      await dispatch(fetchProducts());
+      closeDialog();
+    } catch {
+      toast.error("Failed to save product. Please try again.");
     }
-
-    closeDialog();
   };
 
   const handleEdit = (product: Product) => {
@@ -111,16 +113,19 @@ const ProductsPage = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deletingProduct) return;
-    dispatch(deleteProduct(deletingProduct.id));
-    toast.success("Product deleted.");
-    setDeletingProduct(null);
+    try {
+      await ProductService.remove(deletingProduct.id);
+      toast.success("Product deleted.");
+      await dispatch(fetchProducts());
+    } catch {
+      toast.error("Failed to delete product.");
+    } finally {
+      setDeletingProduct(null);
+    }
   };
 
-  // handleImageUpload sends the chosen file to the backend, then syncs the returned
-  // product (with the new imageUrl) into Redux and local dialog form state so the
-  // preview in ProductDialog updates immediately without a page refresh.
   const handleImageUpload = async (file: File) => {
     if (!editingProduct) {
       toast.error("Save the product before uploading an image.");
@@ -130,23 +135,15 @@ const ProductsPage = () => {
     setIsUploadingImage(true);
 
     try {
-      // Backend returns the full product with the updated imageUrl path.
       const updatedProduct = await ProductService.uploadProductImage(editingProduct.id, file);
-
-      // Merge the returned product over the current editing snapshot.
       const nextProduct = { ...editingProduct, ...updatedProduct };
-
-      // Sync into Redux store so the products table thumbnail also updates.
-      dispatch(updateProduct(nextProduct));
-
-      // Keep the dialog's local state in sync so the image preview refreshes.
       setEditingProduct(nextProduct);
       setFormValues((prev) => ({
         ...prev,
         imageUrl: nextProduct.imageUrl || "",
         salePrice: nextProduct.salePrice ?? "",
       }));
-
+      await dispatch(fetchProducts());
       toast.success("Product image uploaded.");
     } catch {
       toast.error("Unable to upload image. Confirm this product exists in the backend.");
@@ -180,7 +177,7 @@ const ProductsPage = () => {
         categories={categories}
         onChange={setFormValues}
         onClose={closeDialog}
-        onSave={handleSave}
+        onSave={() => void handleSave()}
         canUploadImage={Boolean(editingProduct)}
         isUploadingImage={isUploadingImage}
         onImageUpload={(file) => void handleImageUpload(file)}
@@ -188,10 +185,10 @@ const ProductsPage = () => {
       <ConfirmDialog
         open={Boolean(deletingProduct)}
         title="Delete product?"
-        description={`This will remove ${deletingProduct?.name || "this product"} from the mock catalog.`}
+        description={`This will permanently delete ${deletingProduct?.name || "this product"}.`}
         confirmLabel="Delete"
         onCancel={() => setDeletingProduct(null)}
-        onConfirm={handleDelete}
+        onConfirm={() => void handleDelete()}
       />
     </Box>
   );

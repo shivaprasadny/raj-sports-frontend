@@ -1,35 +1,38 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { mockCategories } from "../mocks/categories";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { CategoryService } from "../../../services/CategoryService";
 import type { Category } from "../types/category";
 
 interface CategoryState {
   categories: Category[];
+  loading: boolean;
 }
 
 const initialState: CategoryState = {
-  categories: mockCategories,
+  categories: [],
+  loading: false,
 };
+
+export const fetchCategories = createAsyncThunk("category/fetchAll", () =>
+  CategoryService.getAll()
+);
 
 const categorySlice = createSlice({
   name: "category",
   initialState,
-  reducers: {
-    // Mock CRUD reducers keep category management frontend-only for now.
-    addCategory: (state, action: PayloadAction<Category>) => {
-      state.categories.push(action.payload);
-    },
-    updateCategory: (state, action: PayloadAction<Category>) => {
-      const index = state.categories.findIndex((category) => category.id === action.payload.id);
-
-      if (index !== -1) {
-        state.categories[index] = action.payload;
-      }
-    },
-    deleteCategory: (state, action: PayloadAction<number>) => {
-      state.categories = state.categories.filter((category) => category.id !== action.payload);
-    },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchCategories.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchCategories.fulfilled, (state, action) => {
+        state.loading = false;
+        state.categories = action.payload;
+      })
+      .addCase(fetchCategories.rejected, (state) => {
+        state.loading = false;
+      });
   },
 });
 
-export const { addCategory, updateCategory, deleteCategory } = categorySlice.actions;
 export default categorySlice.reducer;
