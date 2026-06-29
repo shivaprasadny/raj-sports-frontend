@@ -5,10 +5,14 @@ export const ROUTES = {
   CHECKOUT: "/checkout",
   CONTACT: "/contact",
   ABOUT: "/about",
+  WISHLIST: "/wishlist",
+  PROFILE: "/profile",
+  MY_ORDERS: "/my-orders",
 
   LOGIN: "/login",
   REGISTER: "/register",
   FORGOT_PASSWORD: "/forgot-password",
+  RESET_PASSWORD: "/reset-password",
 
   ADMIN: "/admin",
   ADMIN_BRANDS: "/admin/brands",
@@ -18,4 +22,8 @@ export const ROUTES = {
   ADMIN_CUSTOMERS: "/admin/customers",
   ADMIN_INVENTORY: "/admin/inventory",
   ADMIN_SETTINGS: "/admin/settings",
+  ADMIN_REVIEWS: "/admin/reviews",
+  ADMIN_COUPONS: "/admin/coupons",
+  ADMIN_MARKETING: "/admin/marketing",
+  ADMIN_REPORTS: "/admin/reports",
 };

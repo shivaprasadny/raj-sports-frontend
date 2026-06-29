@@ -10,7 +10,7 @@ export type OrderStatus =
   | 'REFUNDED';
 
 // Payment status values — mirrors the backend PaymentStatus enum.
-export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
+export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED' | 'CANCELLED';
 
 // One line item inside an order — mirrors backend OrderItemResponse DTO.
 export interface OrderItem {

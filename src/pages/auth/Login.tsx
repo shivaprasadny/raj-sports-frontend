@@ -87,6 +87,12 @@ const Login = () => {
             required
           />
 
+          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+            <Link component={RouterLink} to={ROUTES.FORGOT_PASSWORD} variant="body2">
+              Forgot password?
+            </Link>
+          </Box>
+
           <Button variant="contained" size="large" type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Signing in..." : "Login"}
           </Button>

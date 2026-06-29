@@ -3,6 +3,7 @@ import { categoryReducer } from "../features/category";
 import { brandReducer } from "../features/brand";
 import { cartReducer } from "../features/cart";
 import { productReducer } from "../features/product";
+import { wishlistReducer } from "../features/wishlist";
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,8 @@ export const store = configureStore({
     cart: cartReducer,
     category: categoryReducer,
     product: productReducer,
+    // Wishlist is persisted to localStorage inside the slice itself.
+    wishlist: wishlistReducer,
   },
 });
 

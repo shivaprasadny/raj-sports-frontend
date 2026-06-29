@@ -9,6 +9,15 @@ export const PRODUCT_IMAGE_PLACEHOLDER = `data:image/svg+xml;utf8,${encodeURICom
 </svg>
 `)}`;
 
+// Resolves a raw imageUrl to a browser-ready URL, or returns undefined when empty.
+// Use this when you want null-safety without a placeholder fallback.
+export const resolveImageUrl = (imageUrl?: string | null): string | undefined => {
+  if (!imageUrl) return undefined;
+  if (/^https?:\/\//i.test(imageUrl) || imageUrl.startsWith("data:")) return imageUrl;
+  if (imageUrl.startsWith("/uploads")) return `${BACKEND_BASE_URL}${imageUrl}`;
+  return imageUrl;
+};
+
 // Converts backend local upload paths into browser-ready absolute URLs.
 // e.g. "/uploads/products/bat.png" → "http://localhost:8080/uploads/products/bat.png"
 // Full http/https URLs and data: URIs are returned as-is.

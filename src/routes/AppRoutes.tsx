@@ -10,10 +10,14 @@ import Cart from "../pages/customer/Cart";
 import Checkout from "../pages/customer/Checkout";
 import Contact from "../pages/customer/Contact";
 import About from "../pages/customer/About";
+import Wishlist from "../pages/customer/Wishlist";
+import Profile from "../pages/customer/Profile";
 
+import MyOrders from "../pages/customer/MyOrders";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import ForgotPassword from "../pages/auth/ForgotPassword";
+import ResetPassword from "../pages/auth/ResetPassword";
 
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
@@ -23,6 +27,10 @@ import Orders from "../pages/admin/Orders";
 import Customers from "../pages/admin/Customers";
 import Inventory from "../pages/admin/Inventory";
 import Settings from "../pages/admin/Settings";
+import AdminReviews from "../pages/admin/Reviews";
+import AdminCoupons from "../pages/admin/Coupons";
+import AdminMarketing from "../pages/admin/Marketing";
+import AdminReports from "../pages/admin/Reports";
 import ProtectedRoute from "./ProtectedRoute";
 
 import NotFound from "../pages/error/NotFound";
@@ -38,11 +46,15 @@ const AppRoutes = () => {
         <Route path={ROUTES.CHECKOUT} element={<Checkout />} />
         <Route path={ROUTES.CONTACT} element={<Contact />} />
         <Route path={ROUTES.ABOUT} element={<About />} />
+        <Route path={ROUTES.WISHLIST} element={<Wishlist />} />
+        <Route path={ROUTES.PROFILE} element={<Profile />} />
+        <Route path={ROUTES.MY_ORDERS} element={<MyOrders />} />
       </Route>
 
       <Route path={ROUTES.LOGIN} element={<Login />} />
       <Route path={ROUTES.REGISTER} element={<Register />} />
       <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
+      <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
 
       <Route element={<ProtectedRoute allowedRoles={["SUPER_ADMIN", "ADMIN", "MANAGER"]} />}>
         <Route path={ROUTES.ADMIN} element={<AdminLayout />}>
@@ -54,6 +66,10 @@ const AppRoutes = () => {
           <Route path="customers" element={<Customers />} />
           <Route path="inventory" element={<Inventory />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="reviews" element={<AdminReviews />} />
+          <Route path="coupons" element={<AdminCoupons />} />
+          <Route path="marketing" element={<AdminMarketing />} />
+          <Route path="reports" element={<AdminReports />} />
         </Route>
       </Route>
 

@@ -9,6 +9,10 @@ export interface ProductFormValues {
   slug: string;
   shortDescription: string;
   description: string;
+  detailedDescription: string;
+  specifications: string;
+  careInstructions: string;
+  warrantyInfo: string;
   sku: string;
   brandId: number;
   categoryId: number;
@@ -118,6 +122,39 @@ const ProductForm = ({ values, errors = {}, brands, categories, onChange }: Prod
         value={values.description}
         sx={{ gridColumn: { md: "1 / -1" } }}
         onChange={(event) => onChange({ ...values, description: event.target.value })}
+      />
+      <AppTextField
+        label="Detailed Description (appears in Description tab)"
+        multiline
+        rows={4}
+        value={values.detailedDescription}
+        sx={{ gridColumn: { md: "1 / -1" } }}
+        onChange={(event) => onChange({ ...values, detailedDescription: event.target.value })}
+      />
+      <AppTextField
+        label="Specifications (appears in Specifications tab)"
+        multiline
+        rows={4}
+        value={values.specifications}
+        sx={{ gridColumn: { md: "1 / -1" } }}
+        onChange={(event) => onChange({ ...values, specifications: event.target.value })}
+        placeholder={"Weight: 1.2 kg\nBlade: English Willow\nHandle: Cane\nGrip: Rubber"}
+      />
+      <AppTextField
+        label="Care Instructions"
+        multiline
+        rows={2}
+        value={values.careInstructions}
+        sx={{ gridColumn: { md: "1 / -1" } }}
+        onChange={(event) => onChange({ ...values, careInstructions: event.target.value })}
+      />
+      <AppTextField
+        label="Warranty Information"
+        multiline
+        rows={2}
+        value={values.warrantyInfo}
+        sx={{ gridColumn: { md: "1 / -1" } }}
+        onChange={(event) => onChange({ ...values, warrantyInfo: event.target.value })}
       />
       <FormGroup row sx={{ gridColumn: { md: "1 / -1" } }}>
         <FormControlLabel

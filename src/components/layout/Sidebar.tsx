@@ -10,6 +10,10 @@ const links = [
   { label: "Orders", path: ROUTES.ADMIN_ORDERS },
   { label: "Customers", path: ROUTES.ADMIN_CUSTOMERS },
   { label: "Inventory", path: ROUTES.ADMIN_INVENTORY },
+  { label: "Reviews", path: ROUTES.ADMIN_REVIEWS },
+  { label: "Coupons", path: ROUTES.ADMIN_COUPONS },
+  { label: "Marketing", path: ROUTES.ADMIN_MARKETING },
+  { label: "Reports", path: ROUTES.ADMIN_REPORTS },
   { label: "Settings", path: ROUTES.ADMIN_SETTINGS },
 ];
 

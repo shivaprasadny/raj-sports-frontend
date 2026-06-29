@@ -21,8 +21,11 @@ import {
   Typography,
 } from '@mui/material';
 import CancelIcon from '@mui/icons-material/Cancel';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
 import PaymentIcon from '@mui/icons-material/Payment';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import ReplayIcon from '@mui/icons-material/Replay';
 import SearchIcon from '@mui/icons-material/Search';
 import SwapVertIcon from '@mui/icons-material/SwapVert';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -34,7 +37,9 @@ import PageLoader from '../../components/common/loaders/PageLoader';
 import PrimaryButton from '../../components/common/buttons/PrimaryButton';
 import SecondaryButton from '../../components/common/buttons/SecondaryButton';
 import { OrderAdminService } from '../../services/OrderAdminService';
+import PaymentService from '../../services/PaymentService';
 import type { AdminOrder, OrderStatus, PaymentStatus } from '../../types/order';
+import type { Payment } from '../../types/payment';
 
 // ─── Label and color helpers ─────────────────────────────────────────────────
 
@@ -56,6 +61,7 @@ const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   PAID: 'Paid',
   FAILED: 'Failed',
   REFUNDED: 'Refunded',
+  CANCELLED: 'Cancelled',
 };
 
 // Maps each order status to a MUI Chip colour.
@@ -80,8 +86,9 @@ const paymentStatusColor = (status: PaymentStatus): ChipProps['color'] => {
     PAID: 'success',
     FAILED: 'error',
     REFUNDED: 'default',
+    CANCELLED: 'default',
   };
-  return map[status];
+  return map[status] ?? 'default';
 };
 
 // ─── Select option arrays ─────────────────────────────────────────────────────
@@ -161,6 +168,10 @@ const Orders = () => {
   // True while an update/cancel API call is in-flight.
   const [updating, setUpdating] = useState(false);
 
+  // Payment panel — loaded when admin opens view dialog.
+  const [orderPayment, setOrderPayment] = useState<Payment | null>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+
   // ── Data loading ──────────────────────────────────────────────────────────
 
   const loadOrders = async () => {
@@ -196,6 +207,44 @@ const Orders = () => {
   });
 
   // ── Action handlers ───────────────────────────────────────────────────────
+
+  // Opens the view dialog and fetches the payment for the order.
+  const openViewDialog = (order: AdminOrder) => {
+    setViewOrder(order);
+    setOrderPayment(null);
+    setPaymentLoading(true);
+    PaymentService.getPaymentsForOrder(order.orderNumber)
+      .then((payments) => setOrderPayment(payments[0] ?? null))
+      .catch(() => setOrderPayment(null))
+      .finally(() => setPaymentLoading(false));
+  };
+
+  const handlePaymentAction = async (
+    action: 'paid' | 'failed' | 'refund',
+    paymentNumber: string,
+  ) => {
+    setUpdating(true);
+    try {
+      let updated: Payment;
+      if (action === 'paid') {
+        updated = await PaymentService.markPaid(paymentNumber);
+        toast.success('Payment marked as PAID. Order confirmed.');
+      } else if (action === 'failed') {
+        updated = await PaymentService.markFailed(paymentNumber, 'Manually marked failed by admin');
+        toast.success('Payment marked as FAILED.');
+      } else {
+        updated = await PaymentService.refund(paymentNumber);
+        toast.success('Payment refunded. Order set to REFUNDED.');
+      }
+      setOrderPayment(updated);
+      // Reload orders to reflect new statuses.
+      void loadOrders();
+    } catch {
+      toast.error('Payment action failed.');
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   // Opens the status update dialog and pre-fills the current status.
   const openStatusDialog = (order: AdminOrder) => {
@@ -288,12 +337,14 @@ const Orders = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           sx={{ minWidth: 240 }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            },
           }}
         />
 
@@ -383,7 +434,7 @@ const Orders = () => {
                   size="small"
                   color="primary"
                   title="View details"
-                  onClick={() => setViewOrder(order)}
+                  onClick={() => openViewDialog(order)}
                 >
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
@@ -545,6 +596,108 @@ const Orders = () => {
                   Grand Total: {formatCurrency(viewOrder.grandTotal)}
                 </Typography>
               </Box>
+
+              {/* ── Payment panel ─────────────────────────────────────── */}
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
+                Payment
+              </Typography>
+
+              {paymentLoading && (
+                <Typography variant="body2" color="text.secondary">
+                  Loading payment…
+                </Typography>
+              )}
+
+              {!paymentLoading && !orderPayment && (
+                <Alert severity="warning" sx={{ mb: 1 }}>
+                  No payment record found for this order.
+                </Alert>
+              )}
+
+              {!paymentLoading && orderPayment && (
+                <Box>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                        PAYMENT #
+                      </Typography>
+                      <Typography variant="body2">{orderPayment.paymentNumber}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                        STATUS
+                      </Typography>
+                      <Box>
+                        <Chip
+                          label={PAYMENT_STATUS_LABELS[orderPayment.status] ?? orderPayment.status}
+                          color={paymentStatusColor(orderPayment.status)}
+                          size="small"
+                          sx={{ fontWeight: 700 }}
+                        />
+                      </Box>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                        AMOUNT
+                      </Typography>
+                      <Typography variant="body2">
+                        {formatCurrency(orderPayment.amount)} {orderPayment.currency}
+                      </Typography>
+                    </Box>
+                    {orderPayment.failureReason && (
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                          FAILURE REASON
+                        </Typography>
+                        <Typography variant="body2" color="error.main">
+                          {orderPayment.failureReason}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+
+                  {/* Action buttons — only shown for applicable statuses */}
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {orderPayment.status === 'PENDING' && (
+                      <>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="success"
+                          startIcon={<CheckCircleIcon />}
+                          disabled={updating}
+                          onClick={() => void handlePaymentAction('paid', orderPayment.paymentNumber)}
+                        >
+                          Mark Paid
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="error"
+                          startIcon={<ErrorIcon />}
+                          disabled={updating}
+                          onClick={() => void handlePaymentAction('failed', orderPayment.paymentNumber)}
+                        >
+                          Mark Failed
+                        </Button>
+                      </>
+                    )}
+                    {orderPayment.status === 'PAID' && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="warning"
+                        startIcon={<ReplayIcon />}
+                        disabled={updating}
+                        onClick={() => void handlePaymentAction('refund', orderPayment.paymentNumber)}
+                      >
+                        Refund
+                      </Button>
+                    )}
+                  </Box>
+                </Box>
+              )}
             </DialogContent>
 
             <DialogActions>

@@ -17,6 +17,10 @@ const initialProductForm: ProductFormValues = {
   slug: "",
   shortDescription: "",
   description: "",
+  detailedDescription: "",
+  specifications: "",
+  careInstructions: "",
+  warrantyInfo: "",
   sku: "",
   brandId: 1,
   categoryId: 1,
@@ -93,7 +97,16 @@ const ProductsPage = () => {
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
-    setFormValues({ ...product, salePrice: product.salePrice ?? "", imageUrl: product.imageUrl || "" });
+    setFormValues({
+      ...initialProductForm,
+      ...product,
+      detailedDescription: product.detailedDescription ?? "",
+      specifications: product.specifications ?? "",
+      careInstructions: product.careInstructions ?? "",
+      warrantyInfo: product.warrantyInfo ?? "",
+      salePrice: product.salePrice ?? "",
+      imageUrl: product.imageUrl || "",
+    });
     setFormErrors({});
     setIsDialogOpen(true);
   };
@@ -128,11 +141,11 @@ const ProductsPage = () => {
 
       // Keep the dialog's local state in sync so the image preview refreshes.
       setEditingProduct(nextProduct);
-      setFormValues({
-        ...nextProduct,
-        salePrice: nextProduct.salePrice ?? "",
+      setFormValues((prev) => ({
+        ...prev,
         imageUrl: nextProduct.imageUrl || "",
-      });
+        salePrice: nextProduct.salePrice ?? "",
+      }));
 
       toast.success("Product image uploaded.");
     } catch {

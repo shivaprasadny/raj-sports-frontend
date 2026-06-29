@@ -337,7 +337,7 @@ const Inventory = () => {
             size="small"
             value={editQty}
             onChange={(e) => setEditQty(e.target.value)}
-            inputProps={{ min: 0 }}
+            slotProps={{ htmlInput: { min: 0 } }}
             sx={{ mb: 2 }}
           />
 
@@ -349,7 +349,7 @@ const Inventory = () => {
             size="small"
             value={editThreshold}
             onChange={(e) => setEditThreshold(e.target.value)}
-            inputProps={{ min: 0 }}
+            slotProps={{ htmlInput: { min: 0 } }}
             helperText="When stock falls to or below this number, the product is marked LOW_STOCK."
           />
         </DialogContent>
